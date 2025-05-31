@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>MBTI性格診断テスト</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta property="og:title" content="MBTI性格診断テスト">
+  <meta property="og:description" content="32問であなたのMBTIタイプがわかる！結果はSNSでシェアもできる無料診断。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://your-mbti-app.example.com/">
+  <meta property="og:image" content="https://your-mbti-app.example.com/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    body {
+      font-family: "Segoe UI", "Meiryo", sans-serif;
+      background: #f5f5fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    #app {
+      max-width: 600px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+      padding: 32px 18px 24px 18px;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      font-weight: 700;
+      margin: 12px 0;
+    }
+    .progress-bar {
+      width: 100%;
+      background: #ececec;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0 24px 0;
+      height: 14px;
+    }
+    .progress-bar-inner {
+      background: linear-gradient(90deg, #5f9fff 60%, #7ed6fb 100%);
+      height: 100%;
+      transition: width 0.4s cubic-bezier(.4,2,.3,1);
+    }
+    .question-card {
+      background: #f7faff;
+      border-radius: 12px;
+      padding: 18px 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(90,120,255,0.04);
+      transition: box-shadow 0.2s;
+    }
+    .question-card:focus-within {
+      box-shadow: 0 4px 16px rgba(90,120,255,0.09);
+    }
+    .choices {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+    }
+    .choice-label {
+      flex: 1;
+      margin: 0 2px;
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 7px 0;
+      background: #f0f4ff;
+      text-align: center;
+      font-size: 15px;
+      border: 2px solid transparent;
+      transition: background 0.18s, border 0.18s, transform 0.13s;
+      user-select: none;
+      outline: none;
+    }
+    .choice-label.selected {
+      background: #7ed6fb;
+      border: 2px solid #5f9fff;
+      color: #155;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(90,120,255,0.09);
+    }
+    /* --- ボタンアニメーション追加 --- */
+    .choice-label:active, .button:active {
+      transform: scale(0.94);
+      transition: transform 0.10s;
+    }
+    .button {
+      display: inline-block;
+      margin: 18px 8px 0 8px;
+      padding: 12px 32px;
+      font-size: 16px;
+      background: linear-gradient(90deg, #5f9fff 60%, #7ed6fb 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(90,120,255,0.07);
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.18s, transform 0.13s;
+      outline: none;
+    }
+    .button:focus {
+      box-shadow: 0 0 0 3px #b6e0fe;
+    }
+    .lang-switch {
+      float: right;
+      margin-top: -16px;
+      margin-bottom: 10px;
+    }
+    .lang-switch button {
+      margin-left: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #ececec;
+      color: #333;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background 0.15s, transform 0.13s;
+    }
+    .lang-switch button.selected {
+      background: #7ed6fb;
+      color: #116;
+    }
+    .lang-switch button:active {
+      transform: scale(0.96);
+    }
+    .result-type {
+      font-size: 2.2em;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: #5f9fff;
+      margin: 0.2em 0 0.35em 0;
+    }
+    .result-desc {
+      font-size: 1.1em;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    .result-bars {
+      margin: 18px 0 12px 0;
+    }
+    .result-bar-label {
+      font-size: 15px;
+      margin-bottom: 2px;
+      color: #444;
+    }
+    .result-bar-bg {
+      background: #ececec;
+      border-radius: 7px;
+      height: 13px;
+      width: 100%;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .result-bar-inner {
+      background: linear-gradient(90deg, #5f9fff 60%, #7ed6fb 100%);
+      height: 100%;
+      transition: width 0.5s cubic-bezier(.4,2,.3,1);
+      border-radius: 7px;
+    }
+    .result-section {
+      margin-bottom: 1.6em;
+    }
+    .result-section h3 {
+      text-align: left;
+      font-size: 1.1em;
+      margin-bottom: 0.4em;
+      margin-top: 0.8em;
+      color: #5f9fff;
+    }
+    .share-buttons {
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+    .share-btn {
+      display: inline-block;
+      margin: 0 8px;
+      padding: 8px 15px;
+      background: #ececec;
+      border-radius: 6px;
+      color: #333;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.13s, transform 0.13s;
+      font-weight: bold;
+      outline: none;
+    }
+    .share-btn:active {
+      background: #7ed6fb;
+      color: #116;
+      transform: scale(0.97);
+    }
+    .restart-btn, .clear-btn {
+      margin-top: 15px;
+      background: #fff;
+      color: #5f9fff;
+      border: 2px solid #5f9fff;
+      font-weight: bold;
+      transition: background 0.13s, color 0.13s, transform 0.13s;
+    }
+    .restart-btn:active, .clear-btn:active {
+      background: #7ed6fb;
+      color: #fff;
+      transform: scale(0.97);
+    }
+    @media (max-width: 600px) {
+      #app {
+        padding: 12px 2vw 18px 2vw;
+        margin: 10px 0;
+      }
+      .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const DATA = {
+  ja: {
+    title: "MBTI性格診断テスト",
+    start: "診断スタート",
+    next: "次へ",
+    prev: "戻る",
+    finish: "診断結果を見る",
+    restart: "もう一度診断する",
+    continue: "続きから再開",
+    clear: "保存データをクリア",
+    qProgress: (n, total) => `質問 ${n} / ${total}`,
+    result: "あなたのMBTIタイプは…",
+    share: "結果をシェア",
+    shareX: "Xでシェア",
+    shareLINE: "LINEで送る",
+    shareFB: "Facebook",
+    shareIG: "Instagram",
+    shareThreads: "Threads",
+    axes: [
+      ["外向型(E)", "内向型(I)"],
+      ["直感型(N)", "現実型(S)"],
+      ["思考型(T)", "感情型(F)"],
+      ["判断型(J)", "柔軟型(P)"]
+    ],
+    choices: [
+      "とてもあてはまる",
+      "ややあてはまる",
+      "どちらともいえない",
+      "あまりあてはまらない",
+      "全くあてはまらない" // ← 修正済み
+    ],
+    questions: [
+      // E/I
+      "大勢の人と過ごすとエネルギーが湧いてくる",
+      "初対面の人ともすぐに打ち解けることができる",
+      "自分の考えや気持ちを話すのが得意だ",
+      "人前で話すことに抵抗がない",
+      "グループで活動するのが好きだ",
+      "友人や知人が多い方だ",
+      "新しい人と出会うのが楽しみだ",
+      "一人でいるより誰かと一緒にいたい",
+      // N/S
+      "空想やアイデアについて考えるのが好きだ",
+      "直感で物事を判断することが多い",
+      "未来の可能性にワクワクする",
+      "抽象的な話題が好きだ",
+      "計画よりもひらめきを重視する",
+      "細かいことより全体像を重視する",
+      "現実よりも想像の世界が好きだ",
+      "型にはまらない発想が得意だ",
+      // T/F
+      "論理的に物事を考える方だ",
+      "感情よりも事実を重視する",
+      "冷静に判断することができる",
+      "問題解決が得意だ",
+      "自分の意見をはっきり言う方だ",
+      "感情に流されにくい",
+      "客観的に物事を見ることができる",
+      "合理的な選択を重視する",
+      // J/P
+      "計画的に行動するのが好きだ",
+      "スケジュール通りに進めたい",
+      "物事を決めるのが早い方だ",
+      "整理整頓が得意だ",
+      "締め切りを守ることができる",
+      "先の予定を立てるのが好きだ",
+      "ルールや約束を守る方だ",
+      "変化よりも安定を好む"
+    ],
+    resultDesc: type => ({
+      "INTJ": "戦略家タイプ。独創的で計画的、論理的な思考を持ちます。",
+      "INTP": "論理学者タイプ。分析的で好奇心旺盛、独自の理論を追求します。",
+      "ENTJ": "指揮官タイプ。リーダーシップがあり、目標達成に向けて行動します。",
+      "ENTP": "討論者タイプ。柔軟な発想力と独創的なアイデアが特徴です。",
+      "INFJ": "提唱者タイプ。洞察力があり、理想を追い求めます。",
+      "INFP": "仲介者タイプ。思いやりがあり、価値観を大切にします。",
+      "ENFJ": "主人公タイプ。人を導き、協調性に優れています。",
+      "ENFP": "広報運動家タイプ。情熱的で創造的、社交的です。",
+      "ISTJ": "管理者タイプ。責任感が強く、着実に物事を進めます。",
+      "ISFJ": "擁護者タイプ。思いやりがあり、献身的に尽くします。",
+      "ESTJ": "幹部タイプ。現実的で組織力に優れています。",
+      "ESFJ": "領事官タイプ。協調性があり、人を支えるのが得意です。",
+      "ISTP": "巨匠タイプ。柔軟で現実的、問題解決が得意です。",
+      "ISFP": "冒険家タイプ。感受性豊かで柔軟性があります。",
+      "ESTP": "起業家タイプ。行動力があり、臨機応変に対応します。",
+      "ESFP": "エンターテイナータイプ。明るく社交的で周囲を楽しませます。"
+    }[type] || ""),
+    strengths: "強み",
+    weaknesses: "弱み",
+    suitableJobs: "向いている仕事",
+    famousPeople: "有名人例",
+    typeData: {
+      INTJ: {
+        strengths: ["計画的で戦略的", "独創的な発想", "論理的思考"],
+        weaknesses: ["感情表現が苦手", "柔軟性に欠けることがある"],
+        suitableJobs: ["研究者", "戦略コンサル", "エンジニア"],
+        famousPeople: ["イーロン・マスク", "マーク・ザッカーバーグ"]
+      },
+      INTP: {
+        strengths: ["分析力が高い", "好奇心旺盛", "独自の理論を構築"],
+        weaknesses: ["飽きっぽい", "実行力に欠けることがある"],
+        suitableJobs: ["プログラマー", "学者", "作家"],
+        famousPeople: ["アルベルト・アインシュタイン", "ビル・ゲイツ"]
+      },
+      ENTJ: {
+        strengths: ["リーダーシップ", "目標達成力", "論理的"],
+        weaknesses: ["強引になりがち", "感情面に配慮が足りないことがある"],
+        suitableJobs: ["経営者", "マネージャー", "コンサルタント"],
+        famousPeople: ["スティーブ・ジョブズ", "マーガレット・サッチャー"]
+      },
+      ENTP: {
+        strengths: ["発想力豊か", "柔軟な思考", "議論好き"],
+        weaknesses: ["飽きっぽい", "計画性に欠けることがある"],
+        suitableJobs: ["起業家", "マーケター", "コンサルタント"],
+        famousPeople: ["トーマス・エジソン", "レオナルド・ダ・ヴィンチ"]
+      },
+      INFJ: {
+        strengths: ["洞察力がある", "理想主義", "共感力が高い"],
+        weaknesses: ["現実逃避しがち", "内向的すぎることがある"],
+        suitableJobs: ["カウンセラー", "作家", "教育者"],
+        famousPeople: ["マザー・テレサ", "マーティン・ルーサー・キングJr."]
+      },
+      INFP: {
+        strengths: ["思いやりがある", "価値観を大切にする", "創造的"],
+        weaknesses: ["現実逃避しがち", "感情的になりやすい"],
+        suitableJobs: ["作家", "カウンセラー", "デザイナー"],
+        famousPeople: ["ウィリアム・シェイクスピア", "ジョン・レノン"]
+      },
+      ENFJ: {
+        strengths: ["人を導く力", "協調性が高い", "コミュニケーション力"],
+        weaknesses: ["他人に尽くしすぎる", "自己主張が苦手なことがある"],
+        suitableJobs: ["教師", "コーチ", "カウンセラー"],
+        famousPeople: ["バラク・オバマ", "オプラ・ウィンフリー"]
+      },
+      ENFP: {
+        strengths: ["情熱的", "創造的", "社交的"],
+        weaknesses: ["気分屋", "飽きっぽい"],
+        suitableJobs: ["広報", "マーケター", "クリエイター"],
+        famousPeople: ["ロビン・ウィリアムズ", "ウィルト・ディズニー"]
+      },
+      ISTJ: {
+        strengths: ["責任感が強い", "着実", "計画的"],
+        weaknesses: ["柔軟性に欠ける", "新しいことが苦手"],
+        suitableJobs: ["公務員", "会計士", "管理職"],
+        famousPeople: ["ジョージ・ワシントン", "ナタリー・ポートマン"]
+      },
+      ISFJ: {
+        strengths: ["思いやりがある", "献身的", "協調性が高い"],
+        weaknesses: ["自己主張が苦手", "変化に弱い"],
+        suitableJobs: ["看護師", "教師", "秘書"],
+        famousPeople: ["ビヨンセ", "マザー・テレサ"]
+      },
+      ESTJ: {
+        strengths: ["現実的", "組織力がある", "リーダーシップ"],
+        weaknesses: ["頑固になりがち", "感情面に配慮が足りないことがある"],
+        suitableJobs: ["管理職", "経営者", "公務員"],
+        famousPeople: ["ジャッジ・ジュディ", "ジョン・D・ロックフェラー"]
+      },
+      ESFJ: {
+        strengths: ["協調性が高い", "人を支える", "世話好き"],
+        weaknesses: ["他人の評価を気にしすぎる", "自己犠牲的になりがち"],
+        suitableJobs: ["教師", "看護師", "接客業"],
+        famousPeople: ["テイラー・スウィフト", "ジェニファー・ロペス"]
+      },
+      ISTP: {
+        strengths: ["柔軟", "現実的", "問題解決力"],
+        weaknesses: ["感情表現が苦手", "無関心になりがち"],
+        suitableJobs: ["エンジニア", "パイロット", "職人"],
+        famousPeople: ["ブルース・リー", "クリント・イーストウッド"]
+      },
+      ISFP: {
+        strengths: ["感受性豊か", "柔軟", "芸術的"],
+        weaknesses: ["自己主張が苦手", "優柔不断になりがち"],
+        suitableJobs: ["アーティスト", "デザイナー", "カウンセラー"],
+        famousPeople: ["マイケル・ジャクソン", "フリーダ・カーロ"]
+      },
+      ESTP: {
+        strengths: ["行動力がある", "臨機応変", "社交的"],
+        weaknesses: ["衝動的", "計画性に欠けることがある"],
+        suitableJobs: ["営業", "起業家", "スポーツ選手"],
+        famousPeople: ["アーネスト・ヘミングウェイ", "マドンナ"]
+      },
+      ESFP: {
+        strengths: ["明るい", "社交的", "周囲を楽しませる"],
+        weaknesses: ["飽きっぽい", "現実逃避しがち"],
+        suitableJobs: ["俳優", "イベント企画", "接客業"],
+        famousPeople: ["マリリン・モンロー", "エルトン・ジョン"]
+      }
+    }
+  },
+  en: {
+    title: "MBTI Personality Test",
+    start: "Start Test",
+    next: "Next",
+    prev: "Back",
+    finish: "See Results",
+    restart: "Restart Test",
+    continue: "Resume",
+    clear: "Clear Saved Data",
+    qProgress: (n, total) => `Question ${n} / ${total}`,
+    result: "Your MBTI type is...",
+    share: "Share Result",
+    shareX: "Share on X",
+    shareLINE: "Share on LINE",
+    shareFB: "Facebook",
+    shareIG: "Instagram",
+    shareThreads: "Threads",
+    axes: [
+      ["Extraversion(E)", "Introversion(I)"],
+      ["Intuition(N)", "Sensing(S)"],
+      ["Thinking(T)", "Feeling(F)"],
+      ["Judging(J)", "Perceiving(P)"]
+    ],
+    choices: [
+      "Strongly Agree",
+      "Somewhat Agree",
+      "Neutral",
+      "Somewhat Disagree",
+      "Strongly Disagree"
+    ],
+    questions: [
+      // E/I
+      "I feel energized when spending time with many people.",
+      "I can quickly get along with people I've just met.",
+      "I'm good at expressing my thoughts and feelings.",
+      "I don't mind speaking in front of people.",
+      "I like group activities.",
+      "I have many friends and acquaintances.",
+      "I look forward to meeting new people.",
+      "I prefer being with others rather than alone.",
+      // N/S
+      "I like thinking about fantasies and ideas.",
+      "I often make decisions based on intuition.",
+      "I get excited about future possibilities.",
+      "I like abstract topics.",
+      "I value inspiration over planning.",
+      "I focus on the big picture rather than details.",
+      "I prefer the world of imagination to reality.",
+      "I'm good at thinking outside the box.",
+      // T/F
+      "I tend to think logically.",
+      "I value facts over emotions.",
+      "I can make calm judgments.",
+      "I'm good at solving problems.",
+      "I tend to state my opinions clearly.",
+      "I'm not easily swayed by emotions.",
+      "I can see things objectively.",
+      "I value rational choices.",
+      // J/P
+      "I like to act in a planned manner.",
+      "I want to proceed according to schedule.",
+      "I'm quick to make decisions.",
+      "I'm good at organizing things.",
+      "I can meet deadlines.",
+      "I like to make plans in advance.",
+      "I tend to follow rules and promises.",
+      "I prefer stability to change."
+    ],
+    resultDesc: type => ({
+      "INTJ": "The Architect: Imaginative and strategic thinkers, with a plan for everything.",
+      "INTP": "The Logician: Innovative inventors with an unquenchable thirst for knowledge.",
+      "ENTJ": "The Commander: Bold, imaginative and strong-willed leaders.",
+      "ENTP": "The Debater: Smart and curious thinkers who cannot resist an intellectual challenge.",
+      "INFJ": "The Advocate: Quiet and mystical, yet very inspiring and tireless idealists.",
+      "INFP": "The Mediator: Poetic, kind and altruistic people.",
+      "ENFJ": "The Protagonist: Charismatic and inspiring leaders.",
+      "ENFP": "The Campaigner: Enthusiastic, creative and sociable free spirits.",
+      "ISTJ": "The Logistician: Practical and fact-minded individuals.",
+      "ISFJ": "The Defender: Very dedicated and warm protectors.",
+      "ESTJ": "The Executive: Excellent administrators, unsurpassed at managing things.",
+      "ESFJ": "The Consul: Extraordinarily caring, social and popular people.",
+      "ISTP": "The Virtuoso: Bold and practical experimenters.",
+      "ISFP": "The Adventurer: Flexible and charming artists.",
+      "ESTP": "The Entrepreneur: Smart, energetic and very perceptive people.",
+      "ESFP": "The Entertainer: Spontaneous, energetic and enthusiastic entertainers."
+    }[type] || ""),
+    strengths: "Strengths",
+    weaknesses: "Weaknesses",
+    suitableJobs: "Suitable Jobs",
+    famousPeople: "Famous Examples",
+    typeData: {} // 省略（日本語と同様に必要なら追加）
+  }
+};
+
+const NUM_PER_PAGE = 8;
+const TOTAL_QUESTIONS = 32;
+
+function saveState(state) {
+  localStorage.setItem("mbti_state", JSON.stringify(state));
+}
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem("mbti_state") || "null");
+  } catch { return null; }
+}
+function clearState() {
+  localStorage.removeItem("mbti_state");
+}
+
+function getMBTI(answers) {
+  // 各軸のスコアを計算
+  const axes = [
+    [0, 8],   // E/I
+    [8, 16],  // N/S
+    [16, 24], // T/F
+    [24, 32]  // J/P
+  ];
+  const pairs = [
+    ["E", "I"],
+    ["N", "S"],
+    ["T", "F"],
+    ["J", "P"]
+  ];
+  let result = "";
+  let scores = [];
+  for (let i = 0; i < 4; i++) {
+    let sumA = 0, sumB = 0;
+    for (let j = axes[i][0]; j < axes[i][1]; j++) {
+      // 0:最左（A）、4:最右（B）
+      const val = answers[j];
+      if (val == null) continue;
+      // 0,1: A側, 3,4: B側, 2:中立
+      if (val <= 2) sumA += (2 - val);
+      if (val >= 2) sumB += (val - 2);
+    }
+    // 平均値で比較
+    if (sumA >= sumB) {
+      result += pairs[i][0];
+      scores.push(100 * sumA / (sumA + sumB || 1));
+    } else {
+      result += pairs[i][1];
+      scores.push(100 * sumB / (sumA + sumB || 1));
+    }
+  }
+  return {type: result, scores};
+}
+
+function renderApp() {
+  const state = loadState() || {
+    page: 0,
+    answers: Array(TOTAL_QUESTIONS).fill(null),
+    lang: "ja",
+    finished: false
+  };
+  const urlParams = new URLSearchParams(location.search);
+  const forceResult = urlParams.get("result");
+  const forceLang = urlParams.get("lang");
+  if (forceLang && (forceLang === "ja" || forceLang === "en")) state.lang = forceLang;
+  const D = DATA[state.lang];
+
+  // 言語切替ボタン
+  function renderLangSwitch() {
+    return `<div class="lang-switch">
+      <button class="${state.lang==="ja"?"selected":""}" onclick="switchLang('ja')">日本語</button>
+      <button class="${state.lang==="en"?"selected":""}" onclick="switchLang('en')">English</button>
+    </div>`;
+  }
+
+  // 質問ページ
+  function renderQuestions() {
+    const start = state.page * NUM_PER_PAGE;
+    const end = Math.min(start + NUM_PER_PAGE, TOTAL_QUESTIONS);
+    let html = renderLangSwitch();
+    html += `<h1>${D.title}</h1>`;
+    html += `<div class="progress-bar"><div class="progress-bar-inner" style="width:${100*end/TOTAL_QUESTIONS}%"></div></div>`;
+    html += `<div style="text-align:center;color:#5f9fff;font-weight:bold;margin-bottom:12px">${D.qProgress(end, TOTAL_QUESTIONS)}</div>`;
+    for (let i = start; i < end; i++) {
+      html += `<div class="question-card" tabindex="0">
+        <div style="font-size:1.05em;font-weight:bold;margin-bottom:7px;">${D.questions[i]}</div>
+        <div class="choices" role="radiogroup" aria-label="choices">`;
+      for (let j = 0; j < 5; j++) {
+        html += `<label class="choice-label${state.answers[i]===j?" selected":""}" tabindex="0"
+          onclick="selectAnswer(${i},${j})" onkeydown="if(event.key===' '||event.key==='Enter'){selectAnswer(${i},${j});}">
+          <input type="radio" name="q${i}" value="${j}" style="display:none" ${state.answers[i]===j?"checked":""}>
+          ${D.choices[j]}
+        </label>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `<div style="text-align:center">`;
+    if (state.page > 0)
+      html += `<button class="button" onclick="prevPage()">${D.prev}</button>`;
+    if (state.page < 3)
+      html += `<button class="button" onclick="nextPage()">${D.next}</button>`;
+    else
+      html += `<button class="button" onclick="finishTest()">${D.finish}</button>`;
+    html += `</div>`;
+    html += `<div style="text-align:center;margin-top:12px;">
+      <button class="clear-btn button" onclick="clearData()">${D.clear}</button>
+    </div>`;
+    return html;
+  }
+
+  // 診断結果
+  function renderResult(forceType) {
+    let type, scores;
+    if (forceType) {
+      type = forceType;
+      scores = [null, null, null, null];
+    } else {
+      const res = getMBTI(state.answers);
+      type = res.type;
+      scores = res.scores;
+    }
+    const desc = D.resultDesc(type);
+    const typeData = D.typeData[type] || {};
+    let html = renderLangSwitch();
+    html += `<h1>${D.title}</h1>`;
+    html += `<div class="result-type">${type}</div>`;
+    html += `<div class="result-desc">${desc}</div>`;
+    html += `<div class="result-bars">`;
+    for (let i = 0; i < 4; i++) {
+      const axis = D.axes[i];
+      const val = scores[i];
+      if (val == null) continue;
+      html += `<div class="result-bar-label">${axis[0]} <span style="float:right">${axis[1]}</span></div>
+        <div class="result-bar-bg">
+          <div class="result-bar-inner" style="width:${val}%"></div>
+        </div>`;
+    }
+    html += `</div>`;
+    if (typeData.strengths) {
+      html += `<div class="result-section"><h3>${D.strengths}</h3><ul>`;
+      typeData.strengths.forEach(s => html += `<li>${s}</li>`);
+      html += `</ul></div>`;
+    }
+    if (typeData.weaknesses) {
+      html += `<div class="result-section"><h3>${D.weaknesses}</h3><ul>`;
+      typeData.weaknesses.forEach(s => html += `<li>${s}</li>`);
+      html += `</ul></div>`;
+    }
+    if (typeData.suitableJobs) {
+      html += `<div class="result-section"><h3>${D.suitableJobs}</h3><ul>`;
+      typeData.suitableJobs.forEach(s => html += `<li>${s}</li>`);
+      html += `</ul></div>`;
+    }
+    if (typeData.famousPeople) {
+      html += `<div class="result-section"><h3>${D.famousPeople}</h3><ul>`;
+      typeData.famousPeople.forEach(s => html += `<li>${s}</li>`);
+      html += `</ul></div>`;
+    }
+    // シェアボタン
+    const shareUrl = encodeURIComponent(location.origin + location.pathname + `?result=${type}&lang=${state.lang}`);
+    const shareText = encodeURIComponent(`${D.title}｜${type}｜${desc}`);
+    html += `<div class="share-buttons">
+      <button class="share-btn" onclick="shareX('${shareText}','${shareUrl}')">${D.shareX}</button>
+      <button class="share-btn" onclick="shareLINE('${shareText}','${shareUrl}')">${D.shareLINE}</button>
+      <button class="share-btn" onclick="shareFB('${shareText}','${shareUrl}')">${D.shareFB}</button>
+      <button class="share-btn" onclick="shareIG('${shareText}','${shareUrl}')">${D.shareIG}</button>
+      <button class="share-btn" onclick="shareThreads('${shareText}','${shareUrl}')">${D.shareThreads}</button>
+    </div>`;
+    html += `<div style="text-align:center;">
+      <button class="restart-btn button" onclick="restartTest()">${D.restart}</button>
+      <button class="clear-btn button" onclick="clearData()">${D.clear}</button>
+    </div>`;
+    return html;
+  }
+
+  // 最初の画面
+  function renderStart() {
+    let html = renderLangSwitch();
+    html += `<h1>${D.title}</h1>`;
+    html += `<div style="text-align:center;margin-top:28px;">
+      <button class="button" onclick="startTest()">${D.start}</button>
+    </div>`;
+    if (loadState() && !loadState().finished) {
+      html += `<div style="text-align:center;margin-top:14px;">
+        <button class="button" onclick="resumeTest()">${D.continue}</button>
+      </div>`;
+    }
+    html += `<div style="text-align:center;margin-top:18px;">
+      <button class="clear-btn button" onclick="clearData()">${D.clear}</button>
+    </div>`;
+    return html;
+  }
+
+  // 強制結果表示
+  if (forceResult) {
+    document.title = `${D.title}｜${forceResult}`;
+    document.getElementById("app").innerHTML = renderResult(forceResult);
+    return;
+  }
+
+  // 診断完了
+  if (state.finished) {
+    document.title = `${D.title}｜${getMBTI(state.answers).type}`;
+    document.getElementById("app").innerHTML = renderResult();
+    return;
+  }
+
+  // 診断途中
+  if (state.page == null) {
+    document.getElementById("app").innerHTML = renderStart();
+    return;
+  }
+  document.title = D.title;
+  document.getElementById("app").innerHTML = renderQuestions();
+}
+
+window.selectAnswer = function(qIdx, choice) {
+  const state = loadState() || {page:0, answers:Array(TOTAL_QUESTIONS).fill(null),lang:"ja"};
+  state.answers[qIdx] = choice;
+  saveState(state);
+  renderApp();
+};
+window.nextPage = function() {
+  const state = loadState();
+  if (!state) return;
+  // 未回答があれば進めない
+  const start = state.page * NUM_PER_PAGE;
+  const end = Math.min(start + NUM_PER_PAGE, TOTAL_QUESTIONS);
+  for (let i = start; i < end; i++) {
+    if (state.answers[i] == null) {
+      alert(DATA[state.lang].choices[0] + "～" + DATA[state.lang].choices[4] + " からすべて回答してください");
+      return;
+    }
+  }
+  state.page++;
+  saveState(state);
+  renderApp();
+};
+window.prevPage = function() {
+  const state = loadState();
+  if (!state) return;
+  if (state.page > 0) state.page--;
+  saveState(state);
+  renderApp();
+};
+window.finishTest = function() {
+  const state = loadState();
+  if (!state) return;
+  // 全問回答チェック
+  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+    if (state.answers[i] == null) {
+      alert(DATA[state.lang].choices[0] + "～" + DATA[state.lang].choices[4] + " からすべて回答してください");
+      return;
+    }
+  }
+  state.finished = true;
+  saveState(state);
+  renderApp();
+};
+window.restartTest = function() {
+  clearState();
+  renderApp();
+};
+window.startTest = function() {
+  const state = {
+    page: 0,
+    answers: Array(TOTAL_QUESTIONS).fill(null),
+    lang: loadState()?.lang || "ja",
+    finished: false
+  };
+  saveState(state);
+  renderApp();
+};
+window.resumeTest = function() {
+  const state = loadState();
+  if (!state) return;
+  state.finished = false;
+  saveState(state);
+  renderApp();
+};
+window.clearData = function() {
+  if (confirm("本当に保存データを消去しますか？")) {
+    clearState();
+    renderApp();
+  }
+};
+window.switchLang = function(lang) {
+  const state = loadState() || {page:0, answers:Array(TOTAL_QUESTIONS).fill(null),lang:"ja"};
+  state.lang = lang;
+  saveState(state);
+  renderApp();
+};
+
+// シェア機能
+window.shareX = function(text, url) {
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,"_blank");
+};
+window.shareLINE = function(text, url) {
+  window.open(`https://social-plugins.line.me/lineit/share?url=${url}`,"_blank");
+};
+window.shareFB = function(text, url) {
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`,"_blank");
+};
+window.shareIG = function(text, url) {
+  alert("InstagramはWebシェアに対応していません。結果をコピーしてInstagramアプリでシェアしてください。");
+};
+window.shareThreads = function(text, url) {
+  window.open(`https://www.threads.net/intent/post?text=${text}%20${url}`,"_blank");
+};
+
+// 初期表示
+renderApp();
+</script>
+</body>
+</html>
