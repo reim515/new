@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>MBTI診断</title>
+  <style>
+    body { font-family: sans-serif; }
+    .question { margin-bottom: 2em; }
+    .options button { margin: 0.5em; }
+    #result { margin-top: 2em; border: 1px solid #ccc; padding: 1em; }
+  </style>
+</head>
+<body>
+  <div id="quiz">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+  </div>
+  <div id="result" style="display:none;"></div>
+
+  <script>
+    // --- 多言語データ ---
+    const DATA = {
+      ja: {
+        questions: [
+          "計画を立てて物事を進めるのが好きだ。",
+          "人と話すことでエネルギーを得る。",
+          "新しいアイデアを考えるのが得意だ。",
+          "細かい部分まで注意を払う。",
+          "感情よりも論理を重視する。",
+          "人の気持ちをよく考える。",
+          "突然の予定変更にも柔軟に対応できる。",
+          "一人の時間が好きだ。",
+        ],
+        // ここを変更
+        options: ["あてはまる","ややあてはまる","どちらでもない","ややあてはまらない","あてはまらない"],
+        resultTitle: "あなたのMBTIタイプは…",
+        strengths: "強み",
+        weaknesses: "弱み",
+        jobs: "向いている職業",
+        famous: "有名人"
+      }
+    };
+
+    // --- MBTIタイプ情報（全16タイプ） ---
+    const MBTI_TYPES = {
+      ISTJ: {
+        name: { ja: "管理者", en: "Logistician" },
+        desc: { ja: "責任感が強く、着実に物事を進める現実主義者。", en: "-" },
+        strengths: { ja: "誠実、計画的、信頼される", en: "-" },
+        weaknesses: { ja: "柔軟性に欠ける、変化が苦手", en: "-" },
+        jobs: { ja: "会計士、管理職、公務員", en: "-" },
+        famous: { ja: "ジョージ・ワシントン", en: "-" }
+      },
+      ISFJ: {
+        name: { ja: "擁護者", en: "Defender" },
+        desc: { ja: "思いやりがあり、周囲を支える縁の下の力持ち。", en: "-" },
+        strengths: { ja: "親切、責任感、協調性", en: "-" },
+        weaknesses: { ja: "自己主張が苦手、気を遣いすぎる", en: "-" },
+        jobs: { ja: "看護師、教師、事務職", en: "-" },
+        famous: { ja: "ビヨンセ", en: "-" }
+      },
+      INFJ: {
+        name: { ja: "提唱者", en: "Advocate" },
+        desc: { ja: "理想に向かい人々を導く静かな情熱家。", en: "-" },
+        strengths: { ja: "洞察力、共感力、創造性", en: "-" },
+        weaknesses: { ja: "内向的、完璧主義", en: "-" },
+        jobs: { ja: "カウンセラー、作家、教師", en: "-" },
+        famous: { ja: "マザー・テレサ", en: "-" }
+      },
+      INTJ: {
+        name: { ja: "建築家", en: "Architect" },
+        desc: { ja: "戦略的で独創的な思考を持つ計画者。", en: "-" },
+        strengths: { ja: "論理的、独立心、戦略的", en: "-" },
+        weaknesses: { ja: "感情表現が苦手、妥協が苦手", en: "-" },
+        jobs: { ja: "研究者、エンジニア、起業家", en: "-" },
+        famous: { ja: "イーロン・マスク", en: "-" }
+      },
+      ISTP: {
+        name: { ja: "巨匠", en: "Virtuoso" },
+        desc: { ja: "実践的で柔軟、問題解決が得意な職人肌。", en: "-" },
+        strengths: { ja: "冷静、柔軟、観察力", en: "-" },
+        weaknesses: { ja: "感情表現が苦手、衝動的", en: "-" },
+        jobs: { ja: "エンジニア、整備士、パイロット", en: "-" },
+        famous: { ja: "クリント・イーストウッド", en: "-" }
+      },
+      ISFP: {
+        name: { ja: "冒険家", en: "Adventurer" },
+        desc: { ja: "自由を愛し、感性豊かな芸術家タイプ。", en: "-" },
+        strengths: { ja: "柔軟、芸術的、思いやり", en: "-" },
+        weaknesses: { ja: "優柔不断、自己主張が苦手", en: "-" },
+        jobs: { ja: "アーティスト、デザイナー、看護師", en: "-" },
+        famous: { ja: "マイケル・ジャクソン", en: "-" }
+      },
+      INFP: {
+        name: { ja: "仲介者", en: "Mediator" },
+        desc: { ja: "理想主義的で、他者を助けることに喜びを感じる。", en: "-" },
+        strengths: { ja: "共感力、想像力、誠実", en: "-" },
+        weaknesses: { ja: "現実逃避しがち、傷つきやすい", en: "-" },
+        jobs: { ja: "作家、カウンセラー、教師", en: "-" },
+        famous: { ja: "ウィリアム・シェイクスピア", en: "-" }
+      },
+      INTP: {
+        name: { ja: "論理学者", en: "Logician" },
+        desc: { ja: "知的好奇心が強く、理論的に物事を考える。", en: "-" },
+        strengths: { ja: "分析力、独創性、柔軟な思考", en: "-" },
+        weaknesses: { ja: "感情表現が苦手、優柔不断", en: "-" },
+        jobs: { ja: "研究者、プログラマー、科学者", en: "-" },
+        famous: { ja: "アルベルト・アインシュタイン", en: "-" }
+      },
+      ESTP: {
+        name: { ja: "起業家", en: "Entrepreneur" },
+        desc: { ja: "行動力があり、現場での判断に優れる冒険家。", en: "-" },
+        strengths: { ja: "社交的、適応力、決断力", en: "-" },
+        weaknesses: { ja: "衝動的、計画性に欠ける", en: "-" },
+        jobs: { ja: "営業、起業家、スポーツ選手", en: "-" },
+        famous: { ja: "アーネスト・ヘミングウェイ", en: "-" }
+      },
+      ESFP: {
+        name: { ja: "エンターテイナー", en: "Entertainer" },
+        desc: { ja: "明るく社交的で、周囲を楽しませるムードメーカー。", en: "-" },
+        strengths: { ja: "社交的、楽観的、柔軟", en: "-" },
+        weaknesses: { ja: "気分屋、計画性に欠ける", en: "-" },
+        jobs: { ja: "俳優、イベント企画、接客業", en: "-" },
+        famous: { ja: "マリリン・モンロー", en: "-" }
+      },
+      ENFP: {
+        name: { ja: "運動家", en: "Campaigner" },
+        desc: { ja: "好奇心旺盛で、創造力に富むムードメーカー。", en: "-" },
+        strengths: { ja: "情熱的、創造的、社交的", en: "-" },
+        weaknesses: { ja: "飽きっぽい、感情的", en: "-" },
+        jobs: { ja: "広報、コンサルタント、カウンセラー", en: "-" },
+        famous: { ja: "ロビン・ウィリアムズ", en: "-" }
+      },
+      ENTP: {
+        name: { ja: "討論者", en: "Debater" },
+        desc: { ja: "知的好奇心が強く、議論好きなアイデアマン。", en: "-" },
+        strengths: { ja: "論理的、機転が利く、柔軟", en: "-" },
+        weaknesses: { ja: "議論好き、ルール軽視", en: "-" },
+        jobs: { ja: "起業家、弁護士、コンサルタント", en: "-" },
+        famous: { ja: "トーマス・エジソン", en: "-" }
+      },
+      ESTJ: {
+        name: { ja: "幹部", en: "Executive" },
+        desc: { ja: "組織的で現実的、リーダーシップに優れる。", en: "-" },
+        strengths: { ja: "責任感、計画性、実行力", en: "-" },
+        weaknesses: { ja: "頑固、柔軟性に欠ける", en: "-" },
+        jobs: { ja: "管理職、警察官、軍人", en: "-" },
+        famous: { ja: "ジョン・D・ロックフェラー", en: "-" }
+      },
+      ESFJ: {
+        name: { ja: "領事", en: "Consul" },
+        desc: { ja: "親切で協調性があり、周囲をまとめる。", en: "-" },
+        strengths: { ja: "協調性、社交的、思いやり", en: "-" },
+        weaknesses: { ja: "批判に弱い、自己主張が苦手", en: "-" },
+        jobs: { ja: "教師、看護師、営業", en: "-" },
+        famous: { ja: "ビル・クリントン", en: "-" }
+      },
+      ENFJ: {
+        name: { ja: "主人公", en: "Protagonist" },
+        desc: { ja: "人を導くカリスマ性と共感力を持つリーダー。", en: "-" },
+        strengths: { ja: "共感力、情熱、リーダーシップ", en: "-" },
+        weaknesses: { ja: "理想が高い、感情的", en: "-" },
+        jobs: { ja: "教師、カウンセラー、営業", en: "-" },
+        famous: { ja: "バラク・オバマ", en: "-" }
+      },
+      ENTJ: {
+        name: { ja: "指揮官", en: "Commander" },
+        desc: { ja: "決断力と戦略性に優れる生まれながらのリーダー。", en: "-" },
+        strengths: { ja: "リーダーシップ、論理的、決断力", en: "-" },
+        weaknesses: { ja: "支配的、感情表現が苦手", en: "-" },
+        jobs: { ja: "経営者、弁護士、コンサルタント", en: "-" },
+        famous: { ja: "スティーブ・ジョブズ", en: "-" }
+      }
+    };
+
+    // --- 質問ごとのタイプ傾向（例: I/E, S/N, T/F, J/P）---
+    // 例として8問で4軸を2回ずつ判定
+    const AXIS = [
+      "J", "E", "N", "S", "T", "F", "P", "I"
+    ];
+
+    let current = 0;
+    let answers = [];
+
+    function showQuestion() {
+      const q = DATA.ja.questions[current];
+      document.getElementById('question').textContent = q;
+      const opts = DATA.ja.options;
+      const optsDiv = document.getElementById('options');
+      optsDiv.innerHTML = '';
+      opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => answer(idx);
+        optsDiv.appendChild(btn);
+      });
+    }
+
+    function answer(idx) {
+      answers.push(idx);
+      current++;
+      if (current < DATA.ja.questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      // 4軸ごとに合計値を算出（例: 0,1=前者, 3,4=後者, 2=中立）
+      // 例: I/E, S/N, T/F, J/P
+      // answers[0]: J/P, answers[1]: E/I, answers[2]: N/S, answers[3]: S/N ...
+      let axisScore = { I:0, E:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+      for(let i=0; i<answers.length; i++) {
+        const axis = AXIS[i];
+        if(answers[i] <= 1) axisScore[axis] += 1; // あてはまる/ややあてはまる
+        else if(answers[i] >= 3) axisScore[getOpposite(axis)] += 1; // ややあてはまらない/あてはまらない
+        // どちらでもないは加点しない
+      }
+      // 各軸で多い方をタイプとする
+      const type =
+        (axisScore.I >= axisScore.E ? "I" : "E") +
+        (axisScore.S >= axisScore.N ? "S" : "N") +
+        (axisScore.T >= axisScore.F ? "T" : "F") +
+        (axisScore.J >= axisScore.P ? "J" : "P");
+
+      const mbti = MBTI_TYPES[type] || MBTI_TYPES["INTJ"]; // 万一未定義でもINTJで
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <h2>${DATA.ja.resultTitle}</h2>
+        <h3>${type}（${mbti.name.ja}）</h3>
+        <p>${mbti.desc.ja}</p>
+        <ul>
+          <li><b>${DATA.ja.strengths}：</b>${mbti.strengths.ja}</li>
+          <li><b>${DATA.ja.weaknesses}：</b>${mbti.weaknesses.ja}</li>
+          <li><b>${DATA.ja.jobs}：</b>${mbti.jobs.ja}</li>
+          <li><b>${DATA.ja.famous}：</b>${mbti.famous.ja}</li>
+        </ul>
+      `;
+      document.getElementById('quiz').style.display = "none";
+      resultDiv.style.display = "block";
+    }
+
+    function getOpposite(axis) {
+      switch(axis) {
+        case "I": return "E";
+        case "E": return "I";
+        case "S": return "N";
+        case "N": return "S";
+        case "T": return "F";
+        case "F": return "T";
+        case "J": return "P";
+        case "P": return "J";
+      }
+    }
+
+    // 初期表示
+    showQuestion();
+  </script>
+</body>
+</html>
